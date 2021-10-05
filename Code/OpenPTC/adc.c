@@ -17,7 +17,7 @@ volatile static uint16_t high;
 
 void initADC(void)
 {
-    ADMUX = 0b11000000;   // Internal 1.1v ref, channel 0
+    ADMUX = 0b01000000;   // Internal 1.1v ref, channel 0
 
 	ADCSRA =
 	(1 << ADEN)  |        // Enable ADC
