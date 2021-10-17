@@ -16,8 +16,6 @@ extern "C" {
 void defaultFunctionCodes();
 uint8_t * processInputs( uint8_t loco, uint8_t B, uint8_t D);
 
-uint8_t getDebug();
-
 #endif /* FUNCTIONS_H_ */
 
 #if defined(__cplusplus)

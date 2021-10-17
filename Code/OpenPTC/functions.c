@@ -28,8 +28,8 @@ void defaultFunctionCodes()
                               2,   // BUTTON2 - Horn
                               1,   // SWITCH0 - Bell
                               0,   // SWITCH1 - Lights
-                              5,   // SWITCH2 - Engine Start
-                             23    // SWITCH3 - All Aboard
+                             18,   // SWITCH2 - Engine Start
+                             25    // SWITCH3 - All Aboard
     };
 
     putGroupData(0, defaultFn);
@@ -46,17 +46,17 @@ void setFunc(uint8_t f)
 {
   uint8_t bits = 0x01;
 
-  if (f < 7)
+  if (f < 8)
       functionCodes[0] |= (bits << f);
       
   if ( (f > 7) && ( f < 16))             
       functionCodes[1] |= (bits << (f-8));
 
-  if ( (f > 16) && ( f < 24))             
+  if ( (f > 15) && ( f < 24))             
       functionCodes[2] |= (bits << (f-16));
 
-  if ( (f > 24) && ( f < 28))             
-      functionCodes[3] |= (bits << (f-16));
+  if ( (f > 23) && ( f < 29))             
+      functionCodes[3] |= (bits << (f-24));
 }
 
 
@@ -64,25 +64,17 @@ void clearFunc(uint8_t f)
 {
   uint8_t bits = 0x01;
 
-  if (f < 7)
+  if (f < 8)
       functionCodes[0] &= ~(bits << f);
       
   if ( (f > 7) && ( f < 16))             
       functionCodes[1] &= ~(bits << (f-8));
 
-  if ( (f > 16) && ( f < 24))             
+  if ( (f > 15) && ( f < 24))             
       functionCodes[2] &= ~(bits << (f-16));
 
-  if ( (f > 24) && ( f < 28))             
-      functionCodes[3] &= ~(bits << (f-16));
-}
-
-
-
-uint8_t debug = 0;
-uint8_t getDebug()
-{
-  return debug;
+  if ( (f > 23) && ( f < 29))             
+      functionCodes[3] &= ~(bits << (f-24));
 }
 
 
@@ -103,8 +95,6 @@ uint8_t * processInputs( uint8_t loco, uint8_t B, uint8_t D)
     functionCodes[3] = 0;
 
     p = getGroupData(loco);
-
-    if ( (p[0] == 7) && (p[1] == 13) && (p[2] == 2) ) debug = 1;
 
     fn = p[0];        // get function code for button 0
     if (B & BUTTON0)

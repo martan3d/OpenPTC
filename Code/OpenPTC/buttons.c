@@ -44,7 +44,7 @@ void initButtons()
   PORTD |=  (SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);  // pullups
                                 
   DDRB   = 0x00;                 // all inputs
-  PORTB |=  (BUTTON0 | BUTTON1); // Pullups for buttons
+  PORTB |=  (BUTTON0 | BUTTON1 | DIRECTION);  // Pullups for buttons and direction switch
 
   DDRC   = ~ADC;                 // PC0 = ADC input
 }

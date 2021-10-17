@@ -55,17 +55,18 @@
  * *****************************************************************
  */
 
-uint8_t  txdata[] = {0xD0, 0x30, 0x0F, 0x6F, 0x93, 0x53, 0x08, 0x34, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88};
-uint16_t address = 2606;
-uint8_t  rev = 0;
+uint8_t  txdata[]  = {0xD0, 0x30, 0x0F, 0x6F, 0x93, 0x53, 0x08, 0x34, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88};
+uint16_t address   = 2606;
+uint8_t  dir = 0;
 
-uint16_t adcValue = 0;
-uint32_t now = 0;
-uint32_t then = 0;
+uint16_t adcValue  = 0;
+uint32_t now       = 0;
+uint32_t then      = 0;
 
 uint8_t  BData = 0;
 uint8_t  CData = 0;
 uint8_t  DData = 0;
+uint8_t  adc = 0;
 
 uint8_t *p;
 
@@ -83,8 +84,10 @@ int main(void)
 // temporary hard code inits
   txdata[6] = address >> 8;     // temporary xbee loco address
   txdata[7] = address & 0x00ff;
-  defaultFunctionCodes();
+  //defaultFunctionCodes();
 ///////
+
+  pullAllGroupData();           // load sram loco groups from EEPROM
 
   sei();                        // enable interrupts
         
@@ -94,29 +97,31 @@ int main(void)
   {
         /* collect I/O data, buttons and ADC */
 
-        adcValue = getADC();
-
+        adc = getADC()/8;
+    
         scanButtons();
 
         BData = getBData();
         CData = getCData();
         DData = getDData();
 
+        dir = ( (BData & DIRECTION) << 5);
+
         p = processInputs( 0, BData, DData);
         
-        txdata[8]  = 0xff; //adcValue;
+        txdata[8]  = adc | dir;
+        
         txdata[9]  = p[0];
-        txdata[10] = 0x011; //p[2];
-        txdata[11] = 0x022; //p[1];
-        txdata[12] = 0x033; //p[0];
-        txdata[13] = 0xaa;
+        txdata[10] = p[1];
+        txdata[11] = p[2];
+        txdata[12] = p[3];
 
         now = getMsClock();
         if ((now - then) > MAXTIME)
         {
             then = getMsClock();
 
-            if ( getDebug() )
+            if ( BData & DIRECTION )
                  PORTB ^= PMLED;
 
            if (!transmitting())

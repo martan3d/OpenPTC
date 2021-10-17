@@ -8,8 +8,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-volatile const uint8_t adc8 = (1<<ADLAR) | 8;
-
 volatile static uint16_t adcval;
 volatile static uint16_t high;
 
@@ -17,7 +15,7 @@ volatile static uint16_t high;
 
 void initADC(void)
 {
-    ADMUX = 0b01000000;   // Internal 1.1v ref, channel 0
+  ADMUX = 0b01000000;   // Internal 1.1v ref, channel 0
 
 	ADCSRA =
 	(1 << ADEN)  |        // Enable ADC
@@ -42,8 +40,9 @@ uint16_t getADC(void)
 
 ISR(ADC_vect)
 {
-	adcval = ADCL;
-	high = ADCH;
-	high = high << 8;
-	adcval |= high;
-} 
+	adcval = ADC;
+}
+
+
+
+ 

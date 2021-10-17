@@ -58,25 +58,39 @@ uint8_t group4[7];
 uint8_t *gptr = &G0button0;
 uint8_t *pptr = group0;
 
-/* return all input Fcodes */
-uint8_t * getGroupData(uint8_t index)
+
+
+/* pull all group data from eeprom into sram */
+
+void pullAllGroupData()
 {
-   uint8_t i, *mp, *ep, eedata;
+   uint8_t i, j, *mp, *ep, eedata;
    
-   ep = &G0button0 + (index*7);    // point to start of EEDATA we want
-   mp = &group0[0] + (index*7);    // fill this sram array with it
+   ep = &G0button0;                // point to start of EEDATA
 
-   for(i=0;i<7;i++)
+   for(j=0;j<5;j++)                // get all five loco groups
    {
-     eedata = eeprom_read_byte( (const uint8_t *) &ep[i]);
-     mp[i] = eedata;
-   }
+       mp = &group0[0] + (j*7);    // 7 bytes per group, point to start
 
-  return group0 + (index*7);     // return pointer to sram array we just filled
+      for(i=0;i<7;i++)             // read all 7 bytes into sram
+      {
+        eedata = eeprom_read_byte( (const uint8_t *) &ep[i]);
+        mp[i] = eedata;
+      }
+   }
 }
 
 
-/* write all input Fcodes */
+/* return pointer to loco group specified by index */
+
+uint8_t * getGroupData(uint8_t index)
+{ 
+  return group0 + (index*7);        // return pointer to sram array
+}
+
+
+/* write all programmed koco Fcodes that are in sram into EEPROM by loco index */
+
 void putGroupData(uint8_t index, uint8_t * data)
 {
    uint8_t eedata, i;

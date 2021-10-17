@@ -13,6 +13,8 @@ extern "C" {
 #define EEDATA_H_
 
 uint8_t * getGroupData(uint8_t index);
+void pullAllGroupData();
+
 void putGroupData(uint8_t index, uint8_t * data);
 
 #endif /* EEDATA_H_ */
