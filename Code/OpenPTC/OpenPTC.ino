@@ -47,6 +47,7 @@
 #include "timer.h"
 #include "buttons.h"
 #include "eedata.h"
+#include "functions.h"
 
 #define PMLED     0x20
 
@@ -66,6 +67,8 @@ uint8_t  BData = 0;
 uint8_t  CData = 0;
 uint8_t  DData = 0;
 
+uint8_t *p;
+
 #define MAXTIME 300
 
 int main(void)
@@ -77,8 +80,11 @@ int main(void)
   initButtons();                // set IO ports
   DDRB |= PMLED;                // except LED, set that here
 
+// temporary hard code inits
   txdata[6] = address >> 8;     // temporary xbee loco address
   txdata[7] = address & 0x00ff;
+  defaultFunctionCodes();
+///////
 
   sei();                        // enable interrupts
         
@@ -95,18 +101,22 @@ int main(void)
         BData = getBData();
         CData = getCData();
         DData = getDData();
+
+        p = processInputs( 0, BData, DData);
         
-        txdata[8]  = adcValue;
-        txdata[12] = BData;
-        txdata[11] = CData;
-        txdata[10] = DData;
+        txdata[8]  = 0xff; //adcValue;
+        txdata[9]  = p[0];
+        txdata[10] = 0x011; //p[2];
+        txdata[11] = 0x022; //p[1];
+        txdata[12] = 0x033; //p[0];
+        txdata[13] = 0xaa;
 
         now = getMsClock();
         if ((now - then) > MAXTIME)
         {
             then = getMsClock();
 
-            if ( DData & SWITCH3)
+            if ( getDebug() )
                  PORTB ^= PMLED;
 
            if (!transmitting())

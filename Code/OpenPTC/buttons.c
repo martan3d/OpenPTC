@@ -6,6 +6,7 @@
  */
 
 #include <avr/io.h>
+#include "buttons.h"
 
 // button data read from i/o pins
 
@@ -29,19 +30,23 @@ uint8_t Ddata = 0;
 
 #define BOUNCE 10
 
-/* init I/O ports */
+/* init I/O ports 
+ *  
+ *   0 = input pin, 
+ *   1 = output pin
+ * 
+ */
 
 void initButtons()
 {
-  DDRD = 0x02;                  // D0 = Tx output to Xbee                  
-                                // D1 = Rx input from Xbee
-  PORTD |= 0xfc;                // pullups on all but tx/rx
+  DDRD   = 0x01;                // D0 = Tx output to Xbee, D1 = Rx
+  DDRD  &= ~(SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);  // inputs = 0
+  PORTD |=  (SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);  // pullups
                                 
-  DDRB = 0;                     // All inputs on port B
-  PORTB |= 0x03f;               // Pullups for buttons on PB0-Pb5
+  DDRB   = 0x00;                 // all inputs
+  PORTB |=  (BUTTON0 | BUTTON1); // Pullups for buttons
 
-  DDRC = 0xfe;                  // PC0 = ADC input
-  
+  DDRC   = ~ADC;                 // PC0 = ADC input
 }
 
 uint8_t getBData()
@@ -65,20 +70,17 @@ void scanButtons()
     /****** PORTB input pins ******/
 
     Bdata = PINB;              // get all input data
-    //Bdata = ~Bdata;            // invert bits, 0 means ON, change to 1 = ON
-    //Bdata &= 0x1f;             // mask off bits we don't have on ProMini
+    Bdata = ~Bdata;            // invert bits, 0 means ON, change to 1 = ON
 
     /****** PORTC input pins ******/
 
     Cdata = PINC;              // get all input data
-    //Cdata = ~Cdata;            // invert bits, 0 means ON, change to 1 = ON
-    //Cdata &= 0x0f;             // mask off bits we don't have on ProMini
+    Cdata = ~Cdata;            // invert bits, 0 means ON, change to 1 = ON
      
     /********* PORTD input pins **********/
 
     Ddata = PIND;              // get all input data
-    //Ddata = ~Ddata;            // invert bits, 0 means ON, change to 1 = ON
-    //Ddata &= 0xfc;             // mask off bits we don't have on ProMini
+    Ddata = ~Ddata;            // invert bits, 0 means ON, change to 1 = ON
      
    
 }

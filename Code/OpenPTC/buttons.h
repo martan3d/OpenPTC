@@ -34,7 +34,7 @@ void scanButtons();
 #define LED3         0x20     //PORTB5
 #define LED4         0x10     //PORTB4
 #define LEDSTOP      0x08     //PORTB3
-
+#define ADC          0x01     //PORTC0
 
 #endif /* BUTTONS_H_ */
 

@@ -61,32 +61,33 @@ uint8_t *pptr = group0;
 /* return all input Fcodes */
 uint8_t * getGroupData(uint8_t index)
 {
-   uint8_t eedata, i;
+   uint8_t i, *mp, *ep, eedata;
    
-   gptr = &G0button0 + (index*7);    // point to start of EEDATA we want
-   pptr = &group0[0] + (index*7);    // fill this sram array with it
-    
+   ep = &G0button0 + (index*7);    // point to start of EEDATA we want
+   mp = &group0[0] + (index*7);    // fill this sram array with it
+
    for(i=0;i<7;i++)
    {
-     eedata = eeprom_read_byte( (const uint8_t*) *(gptr+i));
-     *(pptr+i) = eedata;
+     eedata = eeprom_read_byte( (const uint8_t *) &ep[i]);
+     mp[i] = eedata;
    }
-  return &group0[0] + (index*7);     // return pointer to sram array we just filled
+
+  return group0 + (index*7);     // return pointer to sram array we just filled
 }
+
 
 /* write all input Fcodes */
 void putGroupData(uint8_t index, uint8_t * data)
 {
    uint8_t eedata, i;
  
-   pptr = &group0[0] + (index*7);    // fill this sram array with passed in data
-   memcpy(pptr, data, 7);            // blast it in there
+   pptr = group0 + (index*7);    // fill this sram array with passed in data
+   memcpy(pptr, data, 7);        // blast it in there
 
    for(i=0;i<7;i++)
    {
-     gptr = &group0[0] + (index*7);
+     gptr = group0 + (index*7);
      pptr = &G0button0 + (index*7);    // point to start of EEDATA we want to write to
-     eeprom_write_byte( (uint8_t*) pptr[i], gptr[i] );
+     eeprom_write_byte( (uint8_t*) &pptr[i], gptr[i] );
    }
-
 }
