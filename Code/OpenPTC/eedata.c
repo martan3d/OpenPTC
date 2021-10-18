@@ -89,7 +89,7 @@ uint8_t * getGroupData(uint8_t index)
 }
 
 
-/* write all programmed koco Fcodes that are in sram into EEPROM by loco index */
+/* write all programmed loco Fcodes that are in sram into EEPROM by loco index */
 
 void putGroupData(uint8_t index, uint8_t * data)
 {

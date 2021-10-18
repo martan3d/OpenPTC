@@ -39,14 +39,15 @@ uint8_t Ddata = 0;
 
 void initButtons()
 {
-  DDRD   = 0x01;                // D0 = Tx output to Xbee, D1 = Rx
-  DDRD  &= ~(SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);  // inputs = 0
-  PORTD |=  (SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);  // pullups
+  DDRD   = 0x01;                                                                 // D0 = Tx output to Xbee, D1 = Rx
+  
+  DDRD  &= ~(SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);    // inputs = 0
+  PORTD |=  (SELECTBUTTON | SWITCH0 | SWITCH1 | SWITCH2 | SWITCH3 | BUTTON2);    // turn on internal pullups (important)
                                 
-  DDRB   = 0x00;                 // all inputs
-  PORTB |=  (BUTTON0 | BUTTON1 | DIRECTION);  // Pullups for buttons and direction switch
+  DDRB   = 0x00;                                                                 // all inputs
+  PORTB |=  (BUTTON0 | BUTTON1 | DIRECTION);                                     // Pullups for buttons and direction switch
 
-  DDRC   = ~ADC;                 // PC0 = ADC input
+  DDRC   = ~ADC;       // PC0 = ADC input, not really needed, config of ADC takes preference
 }
 
 uint8_t getBData()

@@ -18,7 +18,7 @@ void enableTXIRQ(uint8_t c);
 void startTransmit(uint8_t * rxb, uint8_t txl);
 uint8_t transmitting();
 uint8_t computeCRC(uint8_t * t, uint8_t dlen);
-uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data);
+uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data, uint8_t msglen);
 uint8_t * xbeeTransmitPTFrame(uint8_t dh, uint8_t dl, uint8_t * data);
 
 #endif /* XBEE_H_ */

@@ -49,15 +49,11 @@
 #include "eedata.h"
 #include "functions.h"
 
-#define PMLED     0x20
-
-/*
- * *****************************************************************
- */
+/*******************************************************************/
 
 uint8_t  txdata[]  = {0xD0, 0x30, 0x0F, 0x6F, 0x93, 0x53, 0x08, 0x34, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88};
 uint16_t address   = 2606;
-uint8_t  dir = 0;
+uint8_t  dir       = 0;
 
 uint16_t adcValue  = 0;
 uint32_t now       = 0;
@@ -66,11 +62,12 @@ uint32_t then      = 0;
 uint8_t  BData = 0;
 uint8_t  CData = 0;
 uint8_t  DData = 0;
-uint8_t  adc = 0;
+uint8_t  adc   = 0;
 
 uint8_t *p;
 
 #define MAXTIME 300
+#define PMLED     0x20
 
 int main(void)
 {
@@ -97,26 +94,26 @@ int main(void)
   {
         /* collect I/O data, buttons and ADC */
 
-        adc = getADC()/8;
+        adc = (getADC()/8) & 0x7f;            // ADC runs on irq, get Knob value and adjust
     
-        scanButtons();
+        scanButtons();                        // Grab input data for buttons/switches
 
-        BData = getBData();
+        BData = getBData();                   // return each port
         CData = getCData();
         DData = getDData();
 
-        dir = ( (BData & DIRECTION) << 5);
+        dir = ( (BData & DIRECTION) << 5);    // get the direction switch data and move it to bit 7
 
-        p = processInputs( 0, BData, DData);
+        p = processInputs( 0, BData, DData);  // process the inputs into programmed function codes
         
-        txdata[8]  = adc | dir;
+        txdata[8]  = adc | dir;               // insert direction bit into adjusted throttle value
         
-        txdata[9]  = p[0];
-        txdata[10] = p[1];
-        txdata[11] = p[2];
-        txdata[12] = p[3];
+        txdata[9]  = p[3];                    // insert adjusted button readings into the PT broadcast packet
+        txdata[10] = p[2];                    // for all of the function code possibilities
+        txdata[11] = p[1];
+        txdata[12] = p[0];
 
-        now = getMsClock();
+        now = getMsClock();                   // time to send data?
         if ((now - then) > MAXTIME)
         {
             then = getMsClock();

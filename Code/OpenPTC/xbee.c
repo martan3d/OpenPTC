@@ -136,19 +136,19 @@ uint8_t * xbeeTransmitPTFrame(uint8_t dh, uint8_t dl, uint8_t * data)
     return txReq;
 }
 
-#define TXMSGLENGTH 30
+#define TXMSGLENGTH 60                      // max message size
 uint8_t txRequest[TXMSGLENGTH+10];
 
-// transmit data directed frame - configuration messages, fixed at 30 bytes of payload
+// transmit data directed frame to 16bit destination addres (dh,dl)
 
-uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data)
+uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data, uint8_t msglen)
 {
     uint8_t i = 0;
     uint8_t j = 0;
 
     txRequest[0] = 0x7e;                    // Start
     txRequest[1] = 0;                       // Length MSB
-    txRequest[2] = TXMSGLENGTH + 4;         // Length LSB
+    txRequest[2] = msglen + 4;              // Length LSB
     txRequest[3] = 1;                       // 16 bit transmit Frame Type
     txRequest[4] = 0;                       // Frame ID for ACK
     txRequest[5] = dh;                      // 16 bit destination back to rpi
@@ -156,13 +156,12 @@ uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data)
     txRequest[7] = 0;                       // options none
     
     j = 0;
-    for(i=8;i<TXMSGLENGTH+7;i++)
+    for(i=8;i<msglen+7;i++)
     txRequest[i] = data[j++];
     
-    // 28                               27
-    txRequest[TXMSGLENGTH+7] = computeCRC(txRequest, TXMSGLENGTH+7);
+    txRequest[msglen+7] = computeCRC(txRequest, msglen+7);
 
-    startTransmit(txRequest, TXMSGLENGTH+8);  // 29
+    startTransmit(txRequest, msglen+8);
 
     return txRequest;
 }
@@ -200,60 +199,60 @@ ISR(USART_RX_vect)
     switch(rxstate)                         // Decide what to do with it
     {
         case HEADER:
-        if(rxbyte != 0x7e)				// make sure this is start of message
+        if(rxbyte != 0x7e)				          // make sure this is start of message
         break;
-        //rxi = 0;						// reset counter/index
-        rxbuffer[rxi++] = rxbyte;	    // store the byte
-        rxstate = LEN1;				    // wait for Length
+        //rxi = 0;						              // reset counter/index
+        rxbuffer[rxi++] = rxbyte;	          // store the byte
+        rxstate = LEN1;				              // wait for Length
         break;
         
         case LEN1:
-        rxbuffer[rxi++] = rxbyte;	    // length high
+        rxbuffer[rxi++] = rxbyte;	          // length high
         rxstate = LEN2;
         rxlen = rxbyte;
-        rxlen = rxlen << 8;             // MSB into high byte
+        rxlen = rxlen << 8;                 // MSB into high byte
         break;
         
         case LEN2:
-        rxbuffer[rxi++] = rxbyte;	    // length low
-        rxlen = rxlen | rxbyte;         // LSB into low byte
-        rxlen = rxlen + 2;              // add in header, length
-        rxstate = FRAMETYPE;			// next should be frame type
+        rxbuffer[rxi++] = rxbyte;	          // length low
+        rxlen = rxlen | rxbyte;             // LSB into low byte
+        rxlen = rxlen + 2;                  // add in header, length
+        rxstate = FRAMETYPE;			          // next should be frame type
         break;
         
-        case FRAMETYPE:                 // Frame Type
-        rxbuffer[rxi++] = rxbyte;       // save it
+        case FRAMETYPE:                     // Frame Type
+        rxbuffer[rxi++] = rxbyte;           // save it
         switch(rxbyte)
         {
-            case ATCMD:			        // Type of frame coming in?
-            rxstate = ATRESP;           // AT response?
+            case ATCMD:			                // Type of frame coming in?
+            rxstate = ATRESP;               // AT response?
             break;
             
-            case RXBROADCAST:           // Transmit
-            rxstate = BODY;		        // data from another xbee node
+            case RXBROADCAST:               // Transmit
+            rxstate = BODY;		              // data from another xbee node
             break;
         }
         break;
         
-        case ATRESP:                    // response from AT message
-        rxbuffer[rxi++] = rxbyte;	    // store the byte
+        case ATRESP:                        // response from AT message
+        rxbuffer[rxi++] = rxbyte;	          // store the byte
         if(rxi > rxlen)
         {
             memcpy(rxQueue, rxbuffer, rxlen);
             rxi = 0;
             msgRx = RXMSGRX;
-            rxstate = HEADER;           // start over and wait for next header and message
+            rxstate = HEADER;               // start over and wait for next header and message
         }
         break;
         
-        case BODY:                      // Response from datagram message
-        rxbuffer[rxi++] = rxbyte;	    // store the byte
+        case BODY:                          // Response from datagram message
+        rxbuffer[rxi++] = rxbyte;	          // store the byte
         if(rxi > rxlen)
         {
             memcpy(rxQueue, rxbuffer, rxlen);
             rxi = 0;
             msgRx = RXMSGRX;
-            rxstate = HEADER;			// wait for next header and message
+            rxstate = HEADER;			          // wait for next header and message
         }
         break;
     }
