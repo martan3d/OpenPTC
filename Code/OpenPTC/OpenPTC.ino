@@ -48,6 +48,7 @@
 #include "buttons.h"
 #include "eedata.h"
 #include "functions.h"
+#include "message.h"
 
 /*******************************************************************/
 
@@ -67,7 +68,14 @@ uint8_t  adc   = 0;
 uint8_t *p;
 
 #define MAXTIME 300
-#define PMLED     0x20
+#define PMLED   0x20
+
+uint16_t maxtime = MAXTIME;
+uint8_t  masterIndex = 0;
+uint8_t  oldIndex = 0;
+uint8_t  select = 0;
+
+uint8_t debug = 0;
 
 int main(void)
 {
@@ -76,15 +84,18 @@ int main(void)
   initTimer();                  // Setup the millisecond timer
   initADC();                    // Startup the ADC
   initButtons();                // set IO ports
-  DDRB |= PMLED;                // except LED, set that here
+  
+  DDRB |= PMLED;                // except status/debug LED, set that here
 
 // temporary hard code inits
-  txdata[6] = address >> 8;     // temporary xbee loco address
-  txdata[7] = address & 0x00ff;
+ // txdata[6] = address >> 8;     // temporary xbee loco address
+ // txdata[7] = address & 0x00ff;
   //defaultFunctionCodes();
+  //defaultLocoAddresses();
 ///////
 
-  pullAllGroupData();           // load sram loco groups from EEPROM
+  readAllGroupDataFromEEPROM();           // load sram loco groups from EEPROM
+  readAllLocoAddressesFromEEPROM();       // load PT loco addresses from EEPROM
 
   sei();                        // enable interrupts
         
@@ -92,37 +103,58 @@ int main(void)
 
   while(1)
   {
-        /* collect I/O data, buttons and ADC */
+        /* collect buttons and knob data, process and load data packet for PT broadcast */
 
         adc = (getADC()/8) & 0x7f;            // ADC runs on irq, get Knob value and adjust
     
         scanButtons();                        // Grab input data for buttons/switches
 
         BData = getBData();                   // return each port
-        CData = getCData();
         DData = getDData();
 
         dir = ( (BData & DIRECTION) << 5);    // get the direction switch data and move it to bit 7
 
         p = processInputs( 0, BData, DData);  // process the inputs into programmed function codes
-        
+
         txdata[8]  = adc | dir;               // insert direction bit into adjusted throttle value
-        
         txdata[9]  = p[3];                    // insert adjusted button readings into the PT broadcast packet
         txdata[10] = p[2];                    // for all of the function code possibilities
-        txdata[11] = p[1];
+        txdata[11] = p[1];                    // see PT packet format above
         txdata[12] = p[0];
 
+        /* check to see if user has switched to a new locomotive */
+
+        if (oldIndex != masterIndex)          // only need to do this if masterIndex changes
+        {                                     // no need to reload data unless we have to
+           oldIndex = masterIndex;            // it changed, save for next pass
+           
+           address = getLocoAddress(masterIndex);
+           txdata[6] = address >> 8;          // xbee loco address
+           txdata[7] = address & 0x00ff;      // this is the address the receiver responds to
+
+           outputLEDS(masterIndex);           // turn on the proper loco indicator LEDs
+           then += maxtime*2;                 // force packet send update
+        }
+
         now = getMsClock();                   // time to send data?
-        if ((now - then) > MAXTIME)
+        if ((now - then) > maxtime)           // adjust this time depending
         {
             then = getMsClock();
 
-            if ( BData & DIRECTION )
-                 PORTB ^= PMLED;
+            if( DData & SELECTBUTTON)          // Advance Loco Number (more later, need off/on/sleep)
+              {
+                masterIndex++;
+                if (masterIndex > 4)
+                    masterIndex = 0;
+              }
+              
+            if (!transmitting())
+                xbeeTransmitPTFrame(0xff, 0xff, txdata);
+        }
 
-           if (!transmitting())
-              xbeeTransmitPTFrame(0xff, 0xff, txdata);
+        if (msgRX() != 0)                     // Xbee directed message come in?
+        {
+           processDirectedMessage();
         }
   }
 }

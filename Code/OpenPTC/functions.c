@@ -19,6 +19,18 @@
 
 uint8_t functionCodes[4];
 
+void defaultLocoAddresses()
+{
+    setLocoAddress(0, 2606);
+    setLocoAddress(1, 2606);
+    setLocoAddress(2, 2606);
+    setLocoAddress(3, 2606);
+    setLocoAddress(4, 2606);
+    
+    writeAllLocoAddressesToEEPROM();
+
+}
+
 /* set all function codes for all locos to defaults */
 
 void defaultFunctionCodes()
@@ -32,12 +44,11 @@ void defaultFunctionCodes()
                              25    // SWITCH3 - All Aboard
     };
 
-    putGroupData(0, defaultFn);
-    putGroupData(1, defaultFn);
-    putGroupData(2, defaultFn);
-    putGroupData(3, defaultFn);
-    putGroupData(4, defaultFn);
-    putGroupData(5, defaultFn);
+    writeGroupDataToEEPROM(0, defaultFn);
+    writeGroupDataToEEPROM(1, defaultFn);
+    writeGroupDataToEEPROM(2, defaultFn);
+    writeGroupDataToEEPROM(3, defaultFn);
+    writeGroupDataToEEPROM(4, defaultFn);
 }
 
 /* based on the function code, set the bit in the outgoing PT message packet */

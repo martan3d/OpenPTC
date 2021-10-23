@@ -12,10 +12,15 @@ extern "C" {
 #ifndef EEDATA_H_
 #define EEDATA_H_
 
-uint8_t * getGroupData(uint8_t index);
-void pullAllGroupData();
 
-void putGroupData(uint8_t index, uint8_t * data);
+void readAllLocoAddressesFromEEPROM();
+void writeAllLocoAddressesToEEPROM();
+void setLocoAddress(uint8_t index, uint16_t address);
+uint16_t getLocoAddress(uint8_t index);
+uint8_t * getGroupData(uint8_t index);
+void setGroupData(uint8_t * index, uint8_t subindex, uint8_t value);
+void readAllGroupDataFromEEPROM();
+void writeGroupDataToEEPROM(uint8_t index, uint8_t * data);
 
 #endif /* EEDATA_H_ */
 

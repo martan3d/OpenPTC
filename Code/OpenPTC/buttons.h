@@ -14,9 +14,9 @@ extern "C" {
 
 void initButtons();
 uint8_t getBData();
-uint8_t getCData();
 uint8_t getDData();
 void scanButtons();
+void outputLEDS(uint8_t index);
 
 #define DIRECTION    0x04     //PORTB2
 #define SELECTBUTTON 0x04     //PORTD2

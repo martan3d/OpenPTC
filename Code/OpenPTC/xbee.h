@@ -20,6 +20,8 @@ uint8_t transmitting();
 uint8_t computeCRC(uint8_t * t, uint8_t dlen);
 uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data, uint8_t msglen);
 uint8_t * xbeeTransmitPTFrame(uint8_t dh, uint8_t dl, uint8_t * data);
+int8_t msgRX(void);
+void clrmsgRX(void);
 
 #endif /* XBEE_H_ */
 

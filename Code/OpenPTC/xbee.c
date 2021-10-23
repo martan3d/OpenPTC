@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define BUFSIZE   48
+#define BUFSIZE   70    // max xbee message size
 
 #define HEADER    0
 #define BODY      1
@@ -21,8 +21,8 @@
 #define CKSUM     6
 #define FRAMETYPE 7
 
-#define ATCMD		0x88
-#define TXMSG		16
+#define ATCMD		  0x88
+#define TXMSG		  16
 #define QUERYMSG	11
 
 #define RXBROADCAST 0x81
@@ -37,8 +37,9 @@ uint8_t rxi = 0;
 
 uint8_t rxbyte;
 uint8_t rxstate;
-uint8_t msgRx;
-uint8_t rxlen;
+uint8_t * rxptr = &rxQueue[8];
+uint8_t msgRx = 0;
+uint8_t rxlen = 0;
 
 uint8_t tximsglen = 0;
 uint8_t txinprog = 0;
@@ -72,6 +73,24 @@ void enableRXIRQ(void){
 
 void resetRXptr(void){
     rxi = 0;
+}
+
+
+uint8_t * getRX(void)
+{
+  rxptr = (uint8_t *) &rxQueue[8];    // point to data portion of incoming packet
+  return rxptr;
+}
+
+int8_t msgRX(void)
+{
+    return msgRx;
+}
+
+void clrmsgRX(void)
+{
+    msgRx = 0;
+    //rxi = 0;
 }
 
 void disableTXIRQ(void){

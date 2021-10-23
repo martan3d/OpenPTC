@@ -14,6 +14,7 @@ extern "C" {
 #define FUNCTIONS_H_
 
 void defaultFunctionCodes();
+void defaultLocoAddresses();
 uint8_t * processInputs( uint8_t loco, uint8_t B, uint8_t D);
 
 #endif /* FUNCTIONS_H_ */
