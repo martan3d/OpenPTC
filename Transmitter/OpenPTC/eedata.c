@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include "eedata.h"
 
+/* offest in EEPROM from 0000 */
+
 #define EE_LOCO_ADDRESS0 0x00
 #define EE_LOCO_ADDRESS1 0x02
 #define EE_LOCO_ADDRESS2 0x04
@@ -34,7 +36,7 @@ void readAllLocoAddressesFromEEPROM()
 {
   uint8_t j;
   
-  for (j = 0; j < 5; j++)        // get all five loco addresses
+  for (j = 0; j < LOCOS; j++)        // get all five loco addresses
   {
     locoAddresses[j] = eeprom_read_word((const uint16_t*) EE_LOCO_ADDRESS0+j);
   }
@@ -46,7 +48,7 @@ void writeAllLocoAddressesToEEPROM()
 {
   uint8_t j;
 
-  for (j = 0; j < 5; j++)        // get all five loco addresses
+  for (j = 0; j < LOCOS; j++)        // get all five loco addresses
   {
     eeprom_write_word( (uint16_t*) EE_LOCO_ADDRESS0+j, locoAddresses[j]);
   }
@@ -86,9 +88,9 @@ void readAllGroupDataFromEEPROM()
 {
   uint8_t i, j;
 
-  for (j = 0; j < 5; j++)         // get all five loco groups
+  for (j = 0; j < LOCOS; j++)         // get all five loco groups
   {
-    for (i=0;i<7;i++)
+    for (i=0;i<INPUTS;i++)
     {
        group[j][i] = eeprom_read_byte( (const uint8_t *) EE_GROUP0 + (j*8) + i);
     }
@@ -103,6 +105,6 @@ void writeAllGroupDataToEEPROM(uint8_t index, uint8_t * data)
 
   for (i = 0; i < 7; i++)
   {
-    eeprom_write_byte( (uint8_t*) EE_GROUP0 + (index*8) + i, data[i] );
+    eeprom_write_byte( (uint8_t*) EE_GROUP0+(index*8)+i, data[i] );
   }
 }

@@ -52,7 +52,7 @@ void initButtons()
 }
 
 /*
- * Return our local data values 
+ * Return our processed (debounced) data values for all buttons and switches 
  * 
  */
 
@@ -67,7 +67,7 @@ uint8_t getDData()
 }
 
 /*
- * Debounce Input Buttons
+ * Debounce Input Buttons - Pointer magic
  *
  */
 
@@ -75,20 +75,20 @@ uint8_t filterInput(uint8_t inputs, uint8_t button, int8_t *filter)
 {
     uint8_t rdata = 0;
 
-    if(inputs & button)          // Button inputs
+    if(inputs & button)          // Passed in button input
       (*filter)++;
     else
       (*filter)--;
 
-    if( *filter > BOUNCE)        // Must see one this many scans
+    if( *filter > BOUNCE)        // Must see one this many scans ON
     {
-      rdata |= button;
+      rdata |= button;           // to be ON (1)
       *filter = BOUNCE;
     }
     
     if( *filter < 1)             // or zero this many scans
     {
-      rdata &= ~(button);
+      rdata &= ~(button);        // to be zero
       *filter = 0;
     }
 
@@ -130,7 +130,7 @@ void scanButtons()
 }
   
 
-/* turn on 'index' LED from 0-4 Actually sets the port to 'low' */
+/* turn on 'index' LED from 0-4 (Actually sets the port to 'low') */
 
 void outputLEDS(uint8_t index)
 {

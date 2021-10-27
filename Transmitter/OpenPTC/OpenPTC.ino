@@ -71,13 +71,14 @@ uint8_t  BData = 0;
 uint8_t  CData = 0;
 uint8_t  DData = 0;
 uint8_t  adc   = 0;
+uint8_t  adcOld = 0;
 
 uint8_t BDataOld = 0;
 uint8_t DDataOld = 0;
 
 uint8_t *p;
 
-#define MAXTIME 300
+#define MAXTIME 1000
 #define BUTTONTIME 200
 #define PMLED   0x20
 
@@ -85,80 +86,73 @@ uint16_t maxtime = MAXTIME;
 uint8_t  masterIndex = 0;
 uint8_t  oldIndex = 0;
 uint8_t  select = 0;
-uint8_t  checkup = 1;
-
-uint8_t getdebug();
 
 int main(void)
 {
   
   initSerial(38400);            // run Xbee at 34.8K baud
   initTimer();                  // Setup the millisecond timer
-  initADC();                    // Startup the ADC
+  initADC();                    // Startup the ADC irq
   initButtons();                // set IO ports
   
-  DDRB |= PMLED;                // except status/debug LED, set that here
-
-// temporary hard code inits
- // txdata[6] = address >> 8;     // temporary xbee loco address
- // txdata[7] = address & 0x00ff;
+//hard code init of EEPROM
 //defaultFunctionCodes();
 //defaultLocoAddresses();
 ///////
 
-  readAllGroupDataFromEEPROM();           // load sram loco groups from EEPROM
-  readAllLocoAddressesFromEEPROM();       // load PT loco addresses from EEPROM
+  readAllGroupDataFromEEPROM();               // load sram loco groups from EEPROM
+  readAllLocoAddressesFromEEPROM();           // load PT loco addresses from EEPROM
   
-  address = getLocoAddress(masterIndex);
-  txdata[6] = address >> 8;           // xbee loco address
-  txdata[7] = address & 0x00ff;       // this is the address the receiver responds to  
+  address = getLocoAddress(masterIndex);      // grab the default transmit address
+  txdata[6] = address >> 8;                   // xbee loco address returned in PT packet
+  txdata[7] = address & 0x00ff;               // this is the address the receiver responds to  
 
-  outputLEDS(masterIndex);      // turn on the proper loco indicator LEDs
+  outputLEDS(masterIndex);                    // turn on the proper loco indicator LEDs 1-5
 
-  sei();                        // enable interrupts
+  sei();                                      // start the engines - enable interrupts
         
-  then = getMsClock();          // get initial clock reading
-  thenbutton = getMsClock();
+  then = getMsClock();                        // get initial clock reading for the transmit times
+  thenbutton = getMsClock();                  // for the button check too
   
   while(1)
   {
         /* collect buttons and knob data, process and load data packet for PT broadcast */
 
-        adc = (getADC()/8) & 0x7f;            // ADC runs on irq, get Knob value and adjust
+        adc = (getADC()/8) & 0x7f;            // ADC runs on irq, get Knob value and adjust to 0-127
     
-        scanButtons();                        // Grab input data for buttons/switches
+        scanButtons();                        // Process input data for buttons/switches
 
-        BData = getBData();                   // return each port
+        BData = getBData();                   // return debounced data for each port
         DData = getDData();
 
-        updatenow = BData ^ BDataOld;
-        updatenow |= DData ^ DDataOld;
+        updatenow = BData ^ BDataOld;         // has anything changed from the last scan?
+        updatenow |= DData ^ DDataOld;        // if so, we need to send a packet now
+        updatenow |= (adc&0xfc) ^ (adcOld&0xfc);
 
-        BDataOld = BData;
+        BDataOld = BData;                     // save for next scan in a few microseconds
         DDataOld = DData;
+        adcOld   = adc;
 
         dir = ( (BData & DIRECTION) << 5);    // get the direction switch data and move it to bit 7
 
         p = processInputs( masterIndex, BData, DData);  // process the inputs into programmed function codes
 
-        txdata[8]  = adc | dir;                // insert direction bit into adjusted throttle value
-        txdata[9]  = p[3];                     // insert adjusted button readings into the PT broadcast packet
-        txdata[10] = p[2];                     // for all of the function code possibilities
-        txdata[11] = p[1];                     // see PT packet format above
+        txdata[8]  = adc | dir;               // insert direction bit into adjusted throttle value
+        txdata[9]  = p[3];                    // insert adjusted button readings into the PT broadcast packet
+        txdata[10] = p[2];                    // for all of the function code possibilities
+        txdata[11] = p[1];                    // see PT packet format above
         txdata[12] = p[0];
-
-        txdata[14] = getLocoAddress(1);
 
         /* check to see if user has switched to a new locomotive */
 
         nowbutton = getMsClock();
         if ((nowbutton - thenbutton) > BUTTONTIME)
         {
-            thenbutton = getMsClock();
+            thenbutton = getMsClock();        // grab for next pass
 
-            if( (DData & SELECTBUTTON) )           // Advance Loco Number (more later, need off/on/sleep)
+            if( (DData & SELECTBUTTON) )      // Advance Loco Number (more later, need off/on/sleep)
               {
-                masterIndex++;
+                masterIndex++;                // it was pressed, advance to next locomotive
                 if (masterIndex > 4)
                     masterIndex = 0;
               }
@@ -172,36 +166,39 @@ int main(void)
            
            address = getLocoAddress(masterIndex);
            txdata[6] = address >> 8;           // xbee loco address
-           txdata[7] = address & 0x00ff;       // this is the address the receiver responds to
+           txdata[7] = address & 0x00ff;       // goes into the PT transmit packet
 
-           outputLEDS(masterIndex);            // turn on the proper loco indicator LEDs
+           outputLEDS(masterIndex);            // New loco- turn on the proper loco indicator LEDs
         }
 
-        /* Send out data every second if nothing else going on */
+        /* Send out Xbee PT packet data every second if nothing else going on */
         
         now = getMsClock();                    // time to send data?
         if ((now - then) > maxtime)
         {
-            then = getMsClock();
+            then = getMsClock();              // time to send, grab this for next time, maxtime from now
               
-            if (!transmitting()){
+            if (!transmitting())              // if we are in the middle of a transmission, don't try another, wait
+            {
                 xbeeTransmitPTFrame(0xff, 0xff, txdata);
-            }                
+            }
+            else
+              updatenow = 1;                 // make sure it goes out right now or next pass if it can
         }
 
-        /* if any data has changed since last pass, send it now
+        /* if any data has changed since last pass, send it now */
         if (updatenow)
         {
             if (!transmitting()){
                 xbeeTransmitPTFrame(0xff, 0xff, txdata);
+                then = getMsClock();
                 updatenow = 0;
             }
         }
-        */
 
         if (msgRX() != 0)                      // Xbee directed message come in?
         {
-           processDirectedMessage();
+           processDirectedMessage();           // process it
         }
   }
 }

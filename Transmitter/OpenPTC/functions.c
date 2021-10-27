@@ -31,17 +31,17 @@ void defaultLocoAddresses()
 
 }
 
-/* set all function codes for all locos to defaults */
+/* set all function codes for all locos to defaults This is for ESU Custom setup*/
 
 void defaultFunctionCodes()
 {
-    uint8_t defaultFn[7] = {  7,   // BUTTON0 - Brake 
-                             13,   // BUTTON1 - Aux
+    uint8_t defaultFn[7] = { 10,   // BUTTON0 - Brake 
+                              3,   // BUTTON1 - Couplers
                               2,   // BUTTON2 - Horn
                               1,   // SWITCH0 - Bell
                               0,   // SWITCH1 - Lights
-                             18,   // SWITCH2 - Engine Start
-                             25    // SWITCH3 - All Aboard
+                              6,   // SWITCH2 - DitchLights
+                              8    // SWITCH3 - Engine Start
     };
 
     writeAllGroupDataToEEPROM(0, defaultFn);
@@ -53,7 +53,7 @@ void defaultFunctionCodes()
 
 /* based on the function code, set the bit in the outgoing PT message packet */
 
-void setFunc(uint8_t f)
+void setFunc(int8_t f)
 {
   uint8_t bits = 0x01;
 
@@ -71,7 +71,7 @@ void setFunc(uint8_t f)
 }
 
 
-void clearFunc(uint8_t f)
+void clearFunc(int8_t f)
 {
   uint8_t bits = 0x01;
 
