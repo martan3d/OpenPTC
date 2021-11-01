@@ -33,7 +33,7 @@ uint8_t Ddata = 0;
 
 uint8_t leds[5] = { LED0, LED1, LED2, LED3, LED4, LEDSTOP };
 
-#define BOUNCE 4
+#define BOUNCE 8
 
 void initButtons()
 {

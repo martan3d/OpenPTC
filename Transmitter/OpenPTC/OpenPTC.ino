@@ -143,6 +143,9 @@ int main(void)
         txdata[11] = p[1];                    // see PT packet format above
         txdata[12] = p[0];
 
+        txdata[13] = BData;
+        txdata[14] = DData;
+
         /* check to see if user has switched to a new locomotive */
 
         nowbutton = getMsClock();
