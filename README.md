@@ -27,7 +27,8 @@ The byte array in functions.c controls this:
         writeAllGroupDataToEEPROM(4, defaultFn);
     }
 
-
+Note that this method is normally disabled, setting these values will eventually be done using a windows/python program and an Xbee/USB interface. However, for testing you can set these
+values to be programmed into EEPROM by enabling this commented out call in the main code.
 
 
 
