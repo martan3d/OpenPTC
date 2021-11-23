@@ -110,6 +110,8 @@ int main(void)
   outputLEDS(masterIndex);                    // turn on the proper loco indicator LEDs 1-5
 
   sei();                                      // start the engines - enable interrupts
+
+  enableRXIRQ();
         
   then = getMsClock();                        // get initial clock reading for the transmit times
   thenbutton = getMsClock();                  // for the button check too
@@ -183,7 +185,7 @@ int main(void)
               
             if (!transmitting())              // if we are in the middle of a transmission, don't try another, wait
             {
-                xbeeTransmitPTFrame(0xff, 0xff, txdata);
+                //xbeeTransmitPTFrame(0xff, 0xff, txdata);
             }
             else
               updatenow = 1;                 // make sure it goes out right now or next pass if it can
@@ -202,6 +204,7 @@ int main(void)
         if (msgRX() != 0)                      // Xbee directed message come in?
         {
            processDirectedMessage();           // process it
+           clrmsgRX();
         }
   }
 }

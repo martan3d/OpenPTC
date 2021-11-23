@@ -23,6 +23,7 @@ uint8_t * xbeeTransmitPTFrame(uint8_t dh, uint8_t dl, uint8_t * data);
 int8_t msgRX(void);
 void clrmsgRX(void);
 uint16_t getRXAddress();
+void enableRXIRQ(void);
 
 
 #endif /* XBEE_H_ */

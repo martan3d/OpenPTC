@@ -4,10 +4,11 @@
 uint8_t *msgPtr;
 uint8_t msgType;
 
-#define GETALL    0x10
-#define RETALL    0x11
-#define PUTALL    0x20
-#define WRITEEE   0x30
+#define GETALL     0x10
+#define RETALL     0x11
+#define PUTALL     0x20
+#define WRITEEE    0x30
+#define RETURNTYPE 37
 
 #define LOCOS     5
 #define DATA      7
@@ -30,8 +31,10 @@ void processDirectedMessage()
 
     switch(msgType)
     {
-        case GETALL:                                       // send all our data back to whoever asked for it
-             transmitBuffer[i++] = RETALL;                 // message header
+        case RETURNTYPE:
+             i = 0;
+             transmitBuffer[i++] = RETURNTYPE;
+             transmitBuffer[i++] = 'O';
 
              for(k=0;k<LOCOS;k++)
              {
@@ -44,11 +47,11 @@ void processDirectedMessage()
                }
              }
 
-             destinationAddress = getRXAddress();         // get last xbee address that sent us a directed message
+             destinationAddress = 0x1234;         // this is always the programmer
              dl = destinationAddress & 0x00ff;
              dh = (destinationAddress & 0xff00) >> 8;
              
-             xbeeTransmitDataFrame(dh, dl, transmitBuffer, i);
+             xbeeTransmitDataFrame(dh, dl, transmitBuffer, i+1);
    
         break;
 
