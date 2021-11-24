@@ -185,7 +185,7 @@ int main(void)
               
             if (!transmitting())              // if we are in the middle of a transmission, don't try another, wait
             {
-                //xbeeTransmitPTFrame(0xff, 0xff, txdata);
+                xbeeTransmitPTFrame(0xff, 0xff, txdata);
             }
             else
               updatenow = 1;                 // make sure it goes out right now or next pass if it can
@@ -205,6 +205,7 @@ int main(void)
         {
            processDirectedMessage();           // process it
            clrmsgRX();
+           then = getMsClock();                // reset timer to allow directed transactions
         }
   }
 }
