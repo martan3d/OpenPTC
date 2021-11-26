@@ -70,13 +70,12 @@ void processDirectedMessage()
                     gptr[j] = msgPtr[i++];
                   }
              }
-        break;
-
-        case WRITEEE:
+             
              writeAllLocoAddressesToEEPROM();
-             for (j=0;j<0;j++)
+
+             for (k=0;k<LOCOS;k++)
              {
-                writeAllGroupDataToEEPROM(j, getGroupData(j)); 
+                writeAllGroupDataToEEPROM(k, getGroupData(k)); 
              }
              break;
     }
