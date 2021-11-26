@@ -182,7 +182,7 @@ uint8_t * xbeeTransmitDataFrame(uint8_t dh, uint8_t dl, uint8_t * data, uint8_t 
   j = 0;
   for (i = 8; i < msglen + 7; i++)
     txRequest[i] = data[j++];
-
+  
   txRequest[msglen + 7] = computeCRC(txRequest, msglen + 7);
   startTransmit(txRequest, msglen + 8);
   return txRequest;
@@ -271,7 +271,7 @@ ISR(USART_RX_vect)
       rxbuffer[rxi++] = rxbyte;	          // store the byte
       if (rxi > rxlen)
       {
-        memcpy(rxQueue, rxbuffer, rxlen);
+        memcpy(rxQueue, rxbuffer, rxlen+1);  // TODO: very large bug in ALL Xbee RX code
         rxi = 0;
         msgRx = RXMSGRX;
         rxstate = HEADER;			          // wait for next header and message

@@ -56,16 +56,18 @@ void processDirectedMessage()
         break;
 
         case PUTALL:
-             i = 0;
+             i = 1; 
              for (k=0;k<LOCOS;k++)
              {
                   ladr = msgPtr[i++];
                   ladr |= (msgPtr[i++] << 8);
                   
+                  setLocoAddress(k, ladr);
                   gptr = getGroupData(k);
+                  
                   for (j=0;j<DATA;j++)
                   {
-                    gptr[j] = *msgPtr++;
+                    gptr[j] = msgPtr[i++];
                   }
              }
         break;
